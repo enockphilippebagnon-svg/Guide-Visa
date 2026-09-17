@@ -1,0 +1,176 @@
+{
+  "brand": {
+    "name": "Guide Visa",
+    "slogan": "Votre chemin vers l'étranger, sans arnaque.",
+    "company": "Digitalk Afrique",
+    "country": "Côte d'Ivoire",
+    "contact": "digitalkafrique@gmail.com, +225 01 42 07 32 07",
+    "target_audience": "Young Africans (students, professionals, parents)"
+  },
+  "theme": "light",
+  "colors": {
+    "primary": "#0A3D62",
+    "secondary": "#F9CA24",
+    "accent": "#2ECC71",
+    "danger": "#E74C3C",
+    "background": "#F5F7FA",
+    "text_main": "#1A2B4C",
+    "text_muted": "#64748B",
+    "white": "#FFFFFF",
+    "border": "#E2E8F0"
+  },
+  "typography": {
+    "fonts": {
+      "headings": "'Clash Display', 'Cabinet Grotesk', sans-serif",
+      "body": "'Satoshi', 'Manrope', 'Inter', sans-serif"
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl font-bold tracking-tight text-[#1A2B4C]",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight text-[#1A2B4C]",
+      "h3": "text-xl sm:text-2xl font-semibold text-[#1A2B4C]",
+      "body": "text-base text-[#1A2B4C] leading-relaxed",
+      "small": "text-sm text-[#64748B]",
+      "overline": "text-xs font-bold uppercase tracking-widest text-[#64748B]"
+    }
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "card": "shadow-[0_4px_20px_rgb(10,61,98,0.05)]",
+      "hover": "shadow-[0_8px_30px_rgb(10,61,98,0.12)]",
+      "button": "shadow-sm shadow-[#0A3D62]/20"
+    },
+    "radii": {
+      "card": "rounded-2xl",
+      "button": "rounded-xl",
+      "pill": "rounded-full"
+    },
+    "surfaces": {
+      "glass": "backdrop-blur-xl bg-white/90 border-t border-[#E2E8F0]",
+      "alert": "bg-[#E74C3C]/10 border border-[#E74C3C]/20 text-[#E74C3C]"
+    }
+  },
+  "component_patterns": {
+    "cards": "Flat white background (bg-white), rounded-2xl, very subtle border (border border-slate-100), ambient shadow. Generous padding (p-6).",
+    "buttons": "Primary uses Bleu Marine (#0A3D62) with white text. CTA/Action uses Jaune Doré (#F9CA24) with dark text. Apply scale-95 on active press.",
+    "forms": "Soft background for inputs (bg-[#F5F7FA]), border-transparent, focus:ring-2 focus:ring-[#0A3D62]. Labels left-aligned, text-sm font-semibold.",
+    "cost_display": "Flex container showcasing dual currencies. Local currency (XOF/FCFA) is dominant (text-2xl font-bold text-[#1A2B4C]). Target official currency (CAD/EUR) is a smaller pill badge beside it (text-xs bg-slate-100 px-2 py-1 rounded-full text-slate-600).",
+    "step_timeline": "Vertical layout for simulator steps. Left column features a 2px vertical line with circular numbered nodes (active = green/yellow, inactive = gray). Right column contains the expandable step details card.",
+    "eligibility_gauge": "Animated circular SVG progress gauge. Color logic: <50 is danger red (#E74C3C), 50-74 is yellow (#F9CA24), >=75 is green (#2ECC71). Large numeric score centered with ' /100' subtitle.",
+    "trust_signals_anti_scam": "Prominent inline alert cards (bg-red-50 text-red-900 border border-red-200) placed near high-friction actions (payments, official links). Uses ShieldAlert icon.",
+    "bottom_tab_bar": "Fixed to bottom, z-50. Glassmorphism surface. 5 items: Home, Docs, Forum, Links, Profile. Active items get primary color icon/label."
+  },
+  "screen_layouts": [
+    {
+      "name": "1. Landing / Onboarding (3 slides)",
+      "layout": "Full viewport height carousel. Background image with bg-black/40 overlay. Bottom 45% is a white rounded-t-3xl bottom-sheet card containing Title, Subtitle, pagination dots, and Primary CTA 'Commencer'. Image changes per slide."
+    },
+    {
+      "name": "2. Login / Register",
+      "layout": "Centered form on #F5F7FA background. Logo at top. Country dropdown uses flag icons next to names. Clear toggle between Login/Register."
+    },
+    {
+      "name": "3. Dashboard / Home",
+      "layout": "Top sticky nav with Avatar/Name. Yellow hero banner 'Lancer une simulation'. Grid (grid-cols-2 gap-4 on mobile) of country cards (Canada, France, Germany) with photos. Bottom tab bar."
+    },
+    {
+      "name": "4. Simulator Flow - Motif",
+      "layout": "Step 1/3 of wizard. Top progress bar. Grid of large radio-cards (Student, Worker, Family). Selected card gets 2px primary border."
+    },
+    {
+      "name": "5. Simulator Flow - Profile Form",
+      "layout": "Step 2/3 of wizard. Multi-step form inputs (Age, Education, Language). Clean, vertical stacking."
+    },
+    {
+      "name": "6. Simulator Flow - Eligibility Score",
+      "layout": "Step 3/3 of wizard. Centered circular gauge animating to final score. Text analysis below it. Primary CTA 'Voir les étapes'."
+    },
+    {
+      "name": "7. Simulation Detail (7 steps)",
+      "layout": "Vertical timeline. Each step is an accordion card showing step costs (dual currency XOF + CAD/EUR), time estimates, official links, and an embedded anti-scam alert card."
+    },
+    {
+      "name": "8. Digital Document Safe - Categories",
+      "layout": "Grid of folder cards (Identity, Finances, Education). Top global progress bar 'Dossier complété 40%'."
+    },
+    {
+      "name": "9. Digital Document Safe - Upload",
+      "layout": "Checklist of documents. Dashed-border drag-and-drop zone. Uploaded files show lucide file icon and 'verified' green checkmark."
+    },
+    {
+      "name": "10. Useful Links Library",
+      "layout": "Horizontal scrollable pill filters (14 categories). Vertical list of link cards. Each card has a subtle 'Official' blue badge and external-link icon."
+    },
+    {
+      "name": "11. Forum Community - Home",
+      "layout": "Search bar. Sticky horizontal category tabs. Vertical list of topics showing title, author avatar/badge, reply count."
+    },
+    {
+      "name": "12. Forum Community - Topic Detail",
+      "layout": "Original post at top. List of replies below. Sticky bottom container with input field for quick reply."
+    },
+    {
+      "name": "13. User Profile",
+      "layout": "Avatar header. Settings list (Currency preference toggle XOF/XAF/EUR, Offline mode toggle, Notifications). Logout button."
+    },
+    {
+      "name": "14. Anti-scam Alert Cards",
+      "layout": "Grid of red-tinted alert cards detailing common scams (Fake agents, Guaranteed visas). Actionable 'Signaler une arnaque' button."
+    },
+    {
+      "name": "15. Admin Dashboard",
+      "layout": "Desktop-first layout. Left sidebar nav. Grid-cols-4 for KPI stats. Data table for Users CRUD and Links CRUD."
+    }
+  ],
+  "motion_microinteractions": {
+    "page_transitions": "Slide-in from right for new mobile screens to mimic native apps.",
+    "hover_states": "Interactive cards lift slightly (-translate-y-1) with increased shadow. Buttons scale down to 95% on click.",
+    "gauge_animation": "Animate SVG stroke-dashoffset from 0 to score over 1.5 seconds with ease-out.",
+    "toasts": "Use Sonner for non-blocking success/error notifications (e.g., Doc uploaded, Offline mode activated)."
+  },
+  "media_and_images": {
+    "hero_onboarding_1": {
+      "url": "https://images.pexels.com/photos/5622660/pexels-photo-5622660.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Joyful African woman with passport, ready for trip. Use for Slide 1 or Hero."
+    },
+    "onboarding_student": {
+      "url": "https://images.pexels.com/photos/4173219/pexels-photo-4173219.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "African student with passport at airport terminal. Use for Slide 2."
+    },
+    "onboarding_professional": {
+      "url": "https://images.unsplash.com/photo-1758876202610-bae5608f5051?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHw0fHxhZnJpY2FuJTIwcHJvZmVzc2lvbmFsJTIwbGFwdG9wJTIwbW9kZXJufGVufDB8fHx8MTc4OTY2NDA2M3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Young African professional working on laptop. Use for Slide 3."
+    },
+    "onboarding_family": {
+      "url": "https://images.unsplash.com/photo-1592599457566-c660153d9548?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NDh8MHwxfHNlYXJjaHw0fHxhZnJpY2FuJTIwZmFtaWx5JTIwc21pbGluZ3xlbnwwfHx8fDE3ODk2NjQwNjN8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Happy African family. Use for family motif selection."
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "instructions": "Use ShieldAlert for scams, CheckCircle2 for validation, Landmark for official links. 24px width, stroke 2."
+  },
+  "accessibility_and_testing": {
+    "testing_attributes": "All interactive and key informational elements MUST include a data-testid attribute (e.g., data-testid='login-form-submit-button').",
+    "contrast": "Ensure white text on #0A3D62 and dark text on #F9CA24 meet WCAG AA.",
+    "offline_mode": "Show a visible but non-intrusive 'Mode Hors Ligne' indicator in the app header when network drops."
+  },
+  "tech_stack": {
+    "frontend": "React JS (.js/.jsx), TailwindCSS, Shadcn UI primitives, Framer Motion.",
+    "note": "Project uses JavaScript, NOT TypeScript. Do not include TS interfaces or types."
+  },
+  "universal_guidelines_for_main_agent": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky navs and bottom bars.",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements.",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style.",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap. Mobile PWA needs ample touch targets.",
+    "Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN. Always use Unsplash URLs provided.",
+    "DO NOT use complete transparent background in header, overlays, any surface that has content under it. Example: Dropdown with transparent background."
+  ]
+}

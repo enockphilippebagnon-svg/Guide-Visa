@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@600;700;800&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,600,700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Satoshi', 'Manrope', -apple-system, sans-serif;
+  background-color: #F5F7FA;
+  color: #1A2B4C;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display { font-family: 'Clash Display', 'Cabinet Grotesk', 'Manrope', sans-serif; letter-spacing: -0.02em; }
+
+@layer base {
+  :root {
+    --background: 210 27% 97%;
+    --foreground: 220 42% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 42% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 42% 20%;
+    --primary: 208 82% 22%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 17% 95%;
+    --secondary-foreground: 220 42% 20%;
+    --muted: 210 17% 95%;
+    --muted-foreground: 215 15% 47%;
+    --accent: 210 17% 95%;
+    --accent-foreground: 220 42% 20%;
+    --destructive: 6 78% 57%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 18% 90%;
+    --input: 214 18% 90%;
+    --ring: 208 82% 22%;
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+.gv-shadow { box-shadow: 0 4px 20px rgb(10 61 98 / 0.05); }
+.gv-shadow-hover:hover { box-shadow: 0 8px 30px rgb(10 61 98 / 0.12); }
+
+/* subtle grain */
+.gv-noise::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  opacity: 0.03; mix-blend-mode: multiply;
+}
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.gv-fadeup { animation: fadeUp 0.5s ease-out both; }
+
+@keyframes drawCircle { from { stroke-dashoffset: 283; } }
+.gv-gauge-anim { animation: drawCircle 1.5s ease-out both; }
+
+.gv-btn-primary { background: #0A3D62; color: white; }
+.gv-btn-primary:hover { background: #0d4a78; }
+.gv-btn-cta { background: #F9CA24; color: #1A2B4C; }
+.gv-btn-cta:hover { background: #ffd93d; }
