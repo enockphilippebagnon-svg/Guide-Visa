@@ -18,8 +18,6 @@ from pydantic import BaseModel, EmailStr, Field
 from data import PAYS, PAYS_VERS_DEVISE, TAUX_FALLBACK, SIMULATIONS, FORUM_CATEGORIES, LIENS_INITIAUX, DOCUMENTS_REQUIS
 import base64
 import json as jsonlib
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
-
 # --- Setup ---
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
