@@ -1,0 +1,20 @@
+{
+  "summary": "Iteration 4 tested: new admin credentials + rich admin dashboard. Backend: 9/9 pytest cases pass — POST /api/auth/login with digitalkafrique@gmail.com / Digitalk2026! returns role=admin + access_token; old admin admin@digitalkafrique.com is denied (401); GET /api/admin/stats/detaille returns full shape (totaux with all 9 keys, users_par_pays, devises, sims_par_pays, sims_par_motif, docs_par_categorie, croissance_7j with exactly 7 date points, top_users, activite_recente); GET /api/admin/users/{id}/detail returns {user, simulations, nb_documents(int), topics, nb_reponses(int)}; both endpoints correctly 403 for non-admin user and 401/403 for anonymous; /auth/me confirms admin nom='Digitalk' prenom='Afrique' (force-updated at startup). Frontend: admin logs in and lands on /admin — header 'Espace Digitalk Afrique' + 'Dashboard administrateur' visible; 4 tabs (admin-tab-dashboard/users/liens/forum) all render; 6 KPI cards render (Utilisateurs, Simulations, Documents, Forum, Suspendus, Liens officiels); 7 recharts SVGs render (LineChart 7j, BarChart users/pays, PieChart sims/dest, BarChart motifs, plus responsive containers); 9 activite_recente items render with data-testid=admin-activity-{i}; Users tab: admin-users-search, admin-user-{id} rows and admin-user-view-{id} buttons all present; view button opens data-testid=admin-user-detail modal with user info, sims, docs, topics. Non-admin user visiting /admin correctly redirected to /app. Charts render even for low-data (single pays PieChart).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_admin_iter4.py", "/app/test_reports/pytest/iter4_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py now >900 lines including duplicate admin stats endpoints (/admin/stats and /admin/stats/detaille). Consider consolidating and splitting into routers/admin.py.",
+    "Admin.jsx load() fires 4 parallel calls but a single failure in Promise.all shows a generic 'Erreur chargement admin' toast — consider per-request error toasts for better UX diagnostics.",
+    "delLien has no window.confirm() while delUser and delTopic do — inconsistent UX for destructive ops.",
+    "Admin route protection appears to be client-side only (redirects to /app in ProtectedRoute). Server correctly enforces 403 on all admin endpoints (verified), so this is defence-in-depth OK, but ensure ProtectedRoute checks user.role from /auth/me rather than relying on stale cached state."
+  ],
+  "updated_files": ["/app/backend/tests/test_admin_iter4.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "NEW admin: digitalkafrique@gmail.com / Digitalk2026! (verified). Old admin admin@digitalkafrique.com correctly deleted/denied. Fresh test users created via /api/auth/register with TEST_iter4_* prefix.",
+  "seed_data_creation": "Created 2 TEST_iter4_* users (one via API for pytest, one via UI eval for frontend redirect test) — safe to leave, low volume.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iter4 admin features verified. Test file /app/backend/tests/test_admin_iter4.py reusable. Frontend admin dashboard renders 7 recharts and correctly enforces role-based redirect. No blockers."
+}

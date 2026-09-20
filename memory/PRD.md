@@ -49,3 +49,10 @@ Guide Visa is a PWA edited by **Digitalk Afrique** (Côte d'Ivoire, digitalkafri
 - **Audit IA multi-docs** : `POST /api/simulations/{id}/auditer-tout` audite chaque doc image via Gemini + agrège en rapport {score_global, verdict, couleur, points forts, points faibles, docs manquants, doc-by-doc analysis}. Frontend AuditReport modal avec bouton "Analyser tout mon dossier" dans SimulationDetail, téléchargement du rapport en HTML (imprimable en PDF via navigateur).
 - **Rappels expiration** : `date_expiration` optionnelle sur upload document, `GET /api/documents/rappels?jours=90` retourne les docs expirant avec urgence (expire/critique/attention). Bannière rappels sur Home + badge coloré par doc.
 - **Nettoyage complet** : suppression de tous les emojis (drapeaux, 👋🎉🚨💡💱📁💰⚠️✅ etc.) et tirets cadratins (—) dans les 71 fichiers backend+frontend. Design plus sobre et professionnel.
+
+## Added (Feb 2026, v3.8)
+- **Nouveau compte admin** : `digitalkafrique@gmail.com` / `Digitalk2026!`. Ancien admin supprimé au démarrage. Le seed force le rôle admin, statut actif, nom "Digitalk Afrique" à chaque démarrage.
+- **Dashboard admin ultra-détaillé** :
+  - `GET /api/admin/stats/detaille` : totaux (users, actifs 7j, suspendus, sims, score moyen, docs, topics, réponses, liens), utilisateurs par pays, répartition devises, sims par pays de destination, sims par motif, docs par catégorie, croissance 7 derniers jours, top 5 utilisateurs actifs, activité récente (20 événements les plus récents).
+  - `GET /api/admin/users/{id}/detail` : profil complet + simulations + docs count + topics + réponses count.
+- **UI Admin.jsx refonte complète** : 6 KPI cards, LineChart croissance 7j, BarChart utilisateurs par pays, PieChart sims par destination, BarChart horizontal motifs, top utilisateurs actifs, flux d'activité récente, tableau users avec recherche + modal détail (data-testid `admin-user-detail`), gestion liens + forum modération dans 4 onglets.
