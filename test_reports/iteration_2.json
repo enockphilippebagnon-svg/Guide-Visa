@@ -1,0 +1,20 @@
+{
+  "summary": "Iteration 2 tests all NEW Guide Visa features (PWA, anti-arnaque comparator, AI doc analyzer, dossier checklist). Backend: 6/6 pytest cases pass (anti-arnaque ARNAQUE with ratio 30.5 for 3M XOF CA/etudes, SAFE/SUSPECT for realistic 200k XOF, checklist returns 7 items with progression_pct, /documents/{id}/analyser returns full JSON verdict for real JPEG in ~5-10s, PDF gracefully returns status='non_supporte', invalid pays/motif -> 400). PWA: manifest.json served with theme_color=#0A3D62 and start_url='/', service-worker.js served (200 OK). Frontend: bottom nav on mobile has 5 tabs [Accueil, Docs, Arnaque, Forum, Profil]; offline banner (data-testid='offline-banner') appears when navigator.onLine=false with expected French text; home CTAs home-antiscam-cta and home-liens-cta present; /app/anti-arnaque loads with pays+motif selectors, montant input and XOF selector; /app/simulation/{id} shows detail-checklist with 7 checklist-{i} items, detail-antiscam-cta and detail-docs-cta present; /app/documents shows IA pill (doc-ai-*) on image docs.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_new_features.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py (~660 lines) approaching split threshold — consider splitting AI helper, admin, forum into modules if it grows further.",
+    "CORS uses allow_origins=['*'] AND allow_credentials=True — browsers reject this combo when cookies are needed; only Bearer token works cross-origin. Consider restricting to explicit origin(s) if cookie auth is required.",
+    "verifier_dossier does not exclude password_hash/contenu_base64 from returned match doc (it already excludes contenu_base64 via projection — OK).",
+    "AI analyser fallback JSONDecodeError branch references `txt` outside try scope safely but relies on `dir()` check; acceptable but could be cleaner."
+  ],
+  "updated_files": ["/app/backend/tests/test_new_features.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@digitalkafrique.com / Admin@GuideVisa2025 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created one test simulation for admin (CA/etudes) to verify checklist endpoint; a couple of admin-owned documents (image + pdf) uploaded during AI analyzer test — safe to leave in DB.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All new v2 features (PWA offline SW, anti-arnaque comparator, AI vision analyzer, dossier checklist) verified working end-to-end. AI analyzer takes ~5-10s per call; use timeout>=30s. Emergent LLM key configured. Test file at /app/backend/tests/test_new_features.py is reusable for regression."
+}
