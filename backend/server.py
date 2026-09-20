@@ -458,10 +458,158 @@ async def admin_stats(admin: dict = Depends(require_admin)):
         "nb_liens": await db.liens.count_documents({}),
     }
 
+@api.get("/admin/stats/detaille")
+async def admin_stats_detaille(admin: dict = Depends(require_admin)):
+    """Dashboard admin ultra detaille."""
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(5000)
+    sims = await db.simulations.find({}, {"_id": 0}).to_list(5000)
+    docs = await db.documents.find({}, {"_id": 0, "contenu_base64": 0}).to_list(5000)
+    topics = await db.forum_topics.find({}, {"_id": 0}).to_list(5000)
+    reponses = await db.forum_reponses.find({}, {"_id": 0}).to_list(5000)
+
+    # Users par pays
+    users_par_pays = {}
+    for u in users:
+        p = u.get("pays_origine", "?")
+        users_par_pays[p] = users_par_pays.get(p, 0) + 1
+    users_par_pays_list = sorted(
+        [{"pays": k, "nombre": v} for k, v in users_par_pays.items()],
+        key=lambda x: x["nombre"], reverse=True
+    )[:15]
+
+    # Users par devise
+    devise_par_user = {}
+    for u in users:
+        d = u.get("devise_preferee", "?")
+        devise_par_user[d] = devise_par_user.get(d, 0) + 1
+
+    # Simulations par pays
+    sims_par_pays = {}
+    for s in sims:
+        p = s.get("pays_destination", "?")
+        sims_par_pays[p] = sims_par_pays.get(p, 0) + 1
+    sims_par_pays_list = [{"pays": k, "nombre": v} for k, v in sims_par_pays.items()]
+
+    # Simulations par motif
+    sims_par_motif = {}
+    for s in sims:
+        m = s.get("motif", "?")
+        sims_par_motif[m] = sims_par_motif.get(m, 0) + 1
+    sims_par_motif_list = [{"motif": k, "nombre": v} for k, v in sims_par_motif.items()]
+
+    # Score eligibilite moyen
+    scores = [s.get("score_eligibilite") for s in sims if s.get("score_eligibilite") is not None]
+    score_moyen = int(sum(scores) / len(scores)) if scores else 0
+
+    # Croissance 7 derniers jours
+    croissance = []
+    today = now().date()
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        d_str = d.isoformat()
+        u_ce_jour = sum(1 for u in users if u.get("date_inscription", "").startswith(d_str))
+        s_ce_jour = sum(1 for s in sims if s.get("date_debut", "").startswith(d_str))
+        croissance.append({
+            "date": d.strftime("%d/%m"),
+            "utilisateurs": u_ce_jour,
+            "simulations": s_ce_jour,
+        })
+
+    # Actifs 7j (derniere connexion)
+    seuil_7j = (now() - timedelta(days=7)).isoformat()
+    actifs_7j = sum(1 for u in users if u.get("derniere_connexion", "") >= seuil_7j)
+
+    # Top users (par nombre de reponses forum + topics)
+    activity_par_user = {}
+    for t in topics:
+        uid = t.get("auteur_id")
+        if uid:
+            activity_par_user[uid] = activity_par_user.get(uid, 0) + 2
+    for r in reponses:
+        uid = r.get("auteur_id")
+        if uid:
+            activity_par_user[uid] = activity_par_user.get(uid, 0) + 1
+    top_ids = sorted(activity_par_user.items(), key=lambda x: -x[1])[:5]
+    top_users = []
+    for uid, pts in top_ids:
+        u = next((x for x in users if x.get("id") == uid), None)
+        if u:
+            top_users.append({
+                "id": uid, "nom": u.get("nom", ""), "email": u.get("email", ""),
+                "pays_origine": u.get("pays_origine", ""), "points": pts,
+            })
+
+    # Activite recente : 20 derniers events (inscriptions, sims, topics)
+    events = []
+    for u in users:
+        if u.get("date_inscription"):
+            events.append({
+                "type": "inscription", "date": u["date_inscription"],
+                "libelle": f"{u.get('nom','?')} s'est inscrit",
+                "pays": u.get("pays_origine"),
+            })
+    for s in sims:
+        events.append({
+            "type": "simulation", "date": s.get("date_debut", ""),
+            "libelle": f"Simulation {s.get('pays_destination')}/{s.get('motif')} lancee (score {s.get('score_eligibilite', 0)})",
+            "pays": s.get("pays_destination"),
+        })
+    for t in topics:
+        events.append({
+            "type": "topic", "date": t.get("date_creation", ""),
+            "libelle": f"Sujet forum : {t.get('titre', '')[:60]}",
+            "pays": t.get("auteur_pays"),
+        })
+    events.sort(key=lambda x: x["date"], reverse=True)
+    activite_recente = events[:20]
+
+    # Docs par categorie
+    docs_par_cat = {}
+    for d in docs:
+        c = d.get("categorie", "?")
+        docs_par_cat[c] = docs_par_cat.get(c, 0) + 1
+
+    # Nombre de suspendus
+    nb_suspendus = sum(1 for u in users if u.get("statut") == "suspendu")
+
+    return {
+        "totaux": {
+            "utilisateurs": len(users), "actifs_7j": actifs_7j, "suspendus": nb_suspendus,
+            "simulations": len(sims), "score_moyen": score_moyen,
+            "documents": len(docs), "topics": len(topics), "reponses": len(reponses),
+            "liens": await db.liens.count_documents({}),
+        },
+        "users_par_pays": users_par_pays_list,
+        "devises": [{"devise": k, "nombre": v} for k, v in devise_par_user.items()],
+        "sims_par_pays": sims_par_pays_list,
+        "sims_par_motif": sims_par_motif_list,
+        "docs_par_categorie": [{"categorie": k, "nombre": v} for k, v in docs_par_cat.items()],
+        "croissance_7j": croissance,
+        "top_users": top_users,
+        "activite_recente": activite_recente,
+    }
+
 @api.get("/admin/users")
 async def admin_list_users(admin: dict = Depends(require_admin)):
     users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
     return users
+
+@api.get("/admin/users/{uid}/detail")
+async def admin_user_detail(uid: str, admin: dict = Depends(require_admin)):
+    u = await db.users.find_one({"id": uid}, {"_id": 0, "password_hash": 0})
+    if not u:
+        raise HTTPException(404, "Utilisateur introuvable")
+    sims = await db.simulations.find({"user_id": uid}, {"_id": 0}).to_list(200)
+    docs_cnt = await db.documents.count_documents({"user_id": uid})
+    topics = await db.forum_topics.find({"auteur_id": uid}, {"_id": 0}).to_list(200)
+    reponses_cnt = await db.forum_reponses.count_documents({"auteur_id": uid})
+    return {
+        "user": u,
+        "simulations": sims,
+        "nb_documents": docs_cnt,
+        "topics": topics,
+        "nb_reponses": reponses_cnt,
+    }
 
 @api.patch("/admin/users/{uid}")
 async def admin_update_user(uid: str, payload: dict, admin: dict = Depends(require_admin)):
@@ -717,21 +865,27 @@ async def startup():
     await db.documents.create_index("user_id")
     await db.forum_topics.create_index("categorie_slug")
     await db.forum_reponses.create_index("topic_id")
-    # Seed admin
-    admin_email = os.environ.get("ADMIN_EMAIL", "admin@digitalkafrique.com")
-    admin_pw = os.environ.get("ADMIN_PASSWORD", "Admin@GuideVisa2025")
-    existing = await db.users.find_one({"email": admin_email.lower()})
+    # Seed admin (Digitalk Afrique)
+    admin_email = os.environ.get("ADMIN_EMAIL", "digitalkafrique@gmail.com").lower()
+    admin_pw = os.environ.get("ADMIN_PASSWORD", "Digitalk2026!")
+    # Nettoyer les anciens admins (ex : admin@digitalkafrique.com) pour ne garder que celui de la config
+    await db.users.delete_many({"role": "admin", "email": {"$ne": admin_email}})
+    existing = await db.users.find_one({"email": admin_email})
     if not existing:
         await db.users.insert_one({
-            "id": str(uuid.uuid4()), "email": admin_email.lower(), "password_hash": hash_pw(admin_pw),
-            "nom": "Admin", "prenom": "Digitalk", "role": "admin", "statut": "actif",
+            "id": str(uuid.uuid4()), "email": admin_email, "password_hash": hash_pw(admin_pw),
+            "nom": "Digitalk", "prenom": "Afrique", "role": "admin", "statut": "actif",
             "pays_origine": "CI", "devise_preferee": "XOF",
             "date_inscription": now().isoformat(),
         })
         logger.info(f"Admin seeded: {admin_email}")
-    elif not verify_pw(admin_pw, existing["password_hash"]):
-        await db.users.update_one({"email": admin_email.lower()},
-            {"$set": {"password_hash": hash_pw(admin_pw)}})
+    else:
+        # Force role admin + mot de passe a jour + identite Digitalk
+        updates = {"role": "admin", "statut": "actif", "nom": "Digitalk", "prenom": "Afrique"}
+        if not verify_pw(admin_pw, existing["password_hash"]):
+            updates["password_hash"] = hash_pw(admin_pw)
+        await db.users.update_one({"email": admin_email}, {"$set": updates})
+        logger.info(f"Admin refreshed: {admin_email}")
     # Seed liens
     if await db.liens.count_documents({}) == 0:
         for l in LIENS_INITIAUX:
