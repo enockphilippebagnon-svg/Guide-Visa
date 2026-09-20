@@ -1,0 +1,20 @@
+{
+  "summary": "Iteration 3 tested: audit-tout endpoint, document expiration + rappels endpoint, emoji/em-dash cleanup, frontend UI for AuditReport modal + Documents expiration input + Home rappels card. Backend: 7/7 pytest cases pass (POST /api/simulations/{id}/auditer-tout returns full report with score_global/verdict_global/couleur/docs_analyses/docs_manquants/points_forts/points_faibles/total_requis/docs_uploaded/procedure/date_audit/utilisateur; POST /api/documents accepts date_expiration and persists it; GET /api/documents/rappels?jours=90 returns docs expiring within 90 days with correct urgence enum (expire<0, critique<=30, attention>30) and filters out those beyond 90 days; /api/pays drapeau all empty; /api/forum/categories no emojis; /api/simulations/pays drapeau all empty; 404 on unknown sim audit). Frontend: admin login OK; scanned Landing/Home/Register/Documents/AntiScam/Forum/Admin for emojis+em-dash — zero found; Home has data-testid=home-rappels card (visible when expiring docs exist, tested via rappels created earlier); Documents page has data-testid=doc-expiration-input, and doc-exp-{id} badges render on docs with dates; SimulationDetail shows detail-audit-btn, clicking opens modal with audit-start button, then after ~10s the audit-result appears with 1 audit-doc-* entry (passeport) + 6 docs manquants + audit-download button visible. AI audit endpoint completed in <90s and download button correctly present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_iter3_features.py", "/app/backend/tests/test_new_features.py", "/app/test_reports/pytest/iter3_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "data.py FORUM_CATEGORIES 'nom' fields all start with a leading space (e.g. ' Canada, Études') — leftover from emoji removal. Should trim leading space for cleaner UI text.",
+    "server.py grew to 754 lines — consider splitting AI/audit/admin/forum into separate router modules.",
+    "GET /api/documents/rappels is defined BEFORE DELETE /api/documents/{doc_id} (different methods so no conflict), but if a future GET /api/documents/{doc_id} is added, place it after /rappels to avoid path collision.",
+    "auditer_dossier_complet iterates docs sequentially with await for each Gemini call — for a full dossier of 7 image docs this could hit 30-60s. Consider asyncio.gather for parallel analysis, or streaming progress to client."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter3_features.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@digitalkafrique.com / Admin@GuideVisa2025 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created several TEST_ prefixed docs with date_expiration (20d, past, 100d, 45d) on admin account for rappels testing — safe to leave. Reused existing simulation for audit test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iter3 features verified end-to-end. Audit endpoint reuses _analyser_document_ia and takes 5-30s per image doc — use timeout>=90s. Emoji/em-dash cleanup confirmed on all 8 main pages. Reusable test file /app/backend/tests/test_iter3_features.py. Minor cosmetic: forum category names have leading space after emoji removal."
+}

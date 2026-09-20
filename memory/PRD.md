@@ -44,3 +44,8 @@ Guide Visa is a PWA edited by **Digitalk Afrique** (Côte d'Ivoire, digitalkafri
 - P2: Reputation badges & likes on forum replies.
 - P2: Signalements + bannissements.
 - P2: Backup/export ZIP of the dossier.
+
+## Added (Feb 2026, v3.7)
+- **Audit IA multi-docs** : `POST /api/simulations/{id}/auditer-tout` audite chaque doc image via Gemini + agrège en rapport {score_global, verdict, couleur, points forts, points faibles, docs manquants, doc-by-doc analysis}. Frontend AuditReport modal avec bouton "Analyser tout mon dossier" dans SimulationDetail, téléchargement du rapport en HTML (imprimable en PDF via navigateur).
+- **Rappels expiration** : `date_expiration` optionnelle sur upload document, `GET /api/documents/rappels?jours=90` retourne les docs expirant avec urgence (expire/critique/attention). Bannière rappels sur Home + badge coloré par doc.
+- **Nettoyage complet** : suppression de tous les emojis (drapeaux, 👋🎉🚨💡💱📁💰⚠️✅ etc.) et tirets cadratins (—) dans les 71 fichiers backend+frontend. Design plus sobre et professionnel.
