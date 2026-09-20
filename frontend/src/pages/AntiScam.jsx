@@ -42,7 +42,7 @@ export default function AntiScam() {
           <ShieldAlert size={14}/> Anti-arnaque
         </div>
         <h1 className="font-display text-3xl font-bold text-[#1A2B4C]">Vérifie un devis</h1>
-        <p className="text-sm text-slate-600 mt-1">Un "agent" te propose un prix ? Colle-le ici — on te dit s'il correspond aux frais officiels.</p>
+        <p className="text-sm text-slate-600 mt-1">Un "agent" te propose un prix ? Colle-le ici, on te dit s'il correspond aux frais officiels.</p>
       </div>
 
       <form onSubmit={submit} className="bg-white rounded-2xl p-6 border border-slate-100 gv-shadow space-y-4">

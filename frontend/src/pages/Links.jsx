@@ -61,8 +61,8 @@ export default function Links() {
               </div>
               <div className="text-sm text-slate-600 mt-1 leading-relaxed">{l.description}</div>
               <div className="flex gap-3 mt-2 text-xs text-slate-500">
-                <span>📁 {l.categorie}</span>
-                <span>💰 {l.cout}</span>
+                <span> {l.categorie}</span>
+                <span> {l.cout}</span>
               </div>
             </div>
             <ExternalLink className="text-slate-400 shrink-0" size={18}/>

@@ -27,7 +27,7 @@ export default function Simulator() {
   };
 
   const scoreColor = score >= 75 ? "#2ECC71" : score >= 50 ? "#F9CA24" : "#E74C3C";
-  const scoreLabel = score >= 75 ? "Excellent 🎉" : score >= 50 ? "Bon profil" : "À renforcer";
+  const scoreLabel = score >= 75 ? "Excellent " : score >= 50 ? "Bon profil" : "À renforcer";
 
   if (!donnees) return <div className="text-slate-400">Chargement…</div>;
 

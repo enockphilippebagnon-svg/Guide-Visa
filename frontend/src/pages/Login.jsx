@@ -33,7 +33,7 @@ export default function Login() {
         </Link>
 
         <div className="bg-white rounded-3xl p-8 gv-shadow border border-slate-100">
-          <h1 className="font-display text-3xl font-bold text-[#1A2B4C]">Content de te revoir 👋</h1>
+          <h1 className="font-display text-3xl font-bold text-[#1A2B4C]">Content de te revoir </h1>
           <p className="mt-2 text-slate-600 text-sm">Reprends là où tu en étais.</p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">

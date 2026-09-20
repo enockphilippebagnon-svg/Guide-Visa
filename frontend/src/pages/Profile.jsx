@@ -39,7 +39,7 @@ export default function Profile() {
       </div>
 
       <div className="text-center text-xs text-slate-500">
-        Guide Visa v3.5 • Un produit <b>Digitalk Afrique</b> 🇨🇮
+        Guide Visa v3.5 • Un produit <b>Digitalk Afrique</b> 
       </div>
     </div>
   );

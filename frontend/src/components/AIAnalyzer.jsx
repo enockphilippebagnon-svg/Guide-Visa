@@ -81,7 +81,7 @@ export default function AIAnalyzer({ open, onClose, docId, simulationId }) {
 
               {result.probleme?.length > 0 && (
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-[#E74C3C] mb-2">⚠️ Problèmes détectés</div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-[#E74C3C] mb-2"> Problèmes détectés</div>
                   <ul className="space-y-1.5 text-sm text-slate-700">
                     {result.probleme.map((p, i) => (
                       <li key={i} className="flex gap-2"><span className="text-[#E74C3C]">•</span> {p}</li>
@@ -92,7 +92,7 @@ export default function AIAnalyzer({ open, onClose, docId, simulationId }) {
 
               {result.manque?.length > 0 && (
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-[#F9CA24] mb-2">📋 Ce qu'il manque</div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-[#F9CA24] mb-2"> Ce qu'il manque</div>
                   <ul className="space-y-1.5 text-sm text-slate-700">
                     {result.manque.map((p, i) => (
                       <li key={i} className="flex gap-2"><span className="text-[#F9CA24]">•</span> {p}</li>
@@ -103,7 +103,7 @@ export default function AIAnalyzer({ open, onClose, docId, simulationId }) {
 
               {result.recommandations?.length > 0 && (
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-[#2ECC71] mb-2">💡 Recommandations</div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-[#2ECC71] mb-2"> Recommandations</div>
                   <ul className="space-y-1.5 text-sm text-slate-700">
                     {result.recommandations.map((p, i) => (
                       <li key={i} className="flex gap-2"><span className="text-[#2ECC71]">•</span> {p}</li>

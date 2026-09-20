@@ -29,7 +29,7 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-[#F5F7FA] pb-24 lg:pb-6">
       {!online && (
         <div className="bg-[#F9CA24] text-[#1A2B4C] text-center text-xs font-bold py-2 flex items-center justify-center gap-2" data-testid="offline-banner">
-          <WifiOff size={14}/> Mode hors ligne — tes données sont sauvegardées localement
+          <WifiOff size={14}/> Mode hors ligne, tes données sont sauvegardées localement
         </div>
       )}
       {/* Top nav */}

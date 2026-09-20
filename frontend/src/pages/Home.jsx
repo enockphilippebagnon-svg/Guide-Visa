@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, formatMontant } from "../lib/api";
 import { useAuth } from "../lib/auth";
-import { ArrowRight, GraduationCap, Briefcase, Users, ShieldAlert, ExternalLink } from "lucide-react";
+import { ArrowRight, GraduationCap, Briefcase, Users, ShieldAlert, ExternalLink, Bell } from "lucide-react";
 
 const MOTIF_ICONS = { etudes: GraduationCap, travail: Briefcase, famille: Users };
 const MOTIF_LABELS = { etudes: "Études", travail: "Travail", famille: "Famille" };
@@ -12,10 +12,12 @@ export default function Home() {
   const [paysList, setPaysList] = useState([]);
   const [sims, setSims] = useState([]);
   const [selPays, setSelPays] = useState(null);
+  const [rappels, setRappels] = useState([]);
 
   useEffect(() => {
     api.get("/simulations/pays").then(({ data }) => setPaysList(data));
     api.get("/simulations/mes").then(({ data }) => setSims(data));
+    api.get("/documents/rappels?jours=90").then(({ data }) => setRappels(data)).catch(() => {});
   }, []);
 
   return (
@@ -26,13 +28,44 @@ export default function Home() {
         <div className="relative">
           <div className="text-xs font-bold uppercase tracking-widest text-[#F9CA24]">Bonjour {user?.prenom || user?.nom}</div>
           <h1 className="mt-2 font-display text-3xl lg:text-4xl font-bold leading-tight">Prêt à démarrer<br/>ta procédure ?</h1>
-          <p className="mt-3 text-sm text-white/80 max-w-md">Choisis ton pays de destination — on te montre les coûts en {user?.devise_preferee || "FCFA"}.</p>
+          <p className="mt-3 text-sm text-white/80 max-w-md">Choisis ton pays de destination, on te montre les coûts en {user?.devise_preferee || "FCFA"}.</p>
         </div>
       </div>
 
+      {/* Rappels expiration */}
+      {rappels.length > 0 && (
+        <div className="rounded-2xl bg-white p-5 border border-slate-100 gv-shadow" data-testid="home-rappels">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-lg bg-[#F9CA24]/20 flex items-center justify-center">
+              <Bell className="text-[#F9CA24]" size={18}/>
+            </div>
+            <div>
+              <div className="font-display font-bold text-[#1A2B4C]">Rappels d'expiration</div>
+              <div className="text-xs text-slate-500">{rappels.length} document(s) à surveiller</div>
+            </div>
+          </div>
+          <ul className="space-y-2">
+            {rappels.slice(0, 4).map((r) => {
+              const jr = r.jours_restants;
+              const color = jr < 0 ? "#E74C3C" : jr <= 30 ? "#E74C3C" : "#F9CA24";
+              const label = jr < 0 ? `Expiré depuis ${Math.abs(jr)} jour(s)` : `Expire dans ${jr} jour(s)`;
+              return (
+                <li key={r.id} className="flex items-center gap-3 p-2 bg-[#F5F7FA] rounded-xl" data-testid={`rappel-${r.id}`}>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }}/>
+                  <div className="text-sm font-semibold text-[#1A2B4C] flex-1 truncate">{r.nom}</div>
+                  <div className="text-xs font-bold" style={{ color }}>{label}</div>
+                </li>
+              );
+            })}
+          </ul>
+          <Link to="/app/documents" className="mt-3 block text-center text-xs font-semibold text-[#0A3D62] hover:underline" data-testid="home-rappels-cta">
+            Voir mes documents
+          </Link>
+        </div>
+      )}
+
       {/* Simulations en cours */}
-      {sims.length > 0 && (
-        <div>
+      {sims.length > 0 && (        <div>
           <h2 className="font-display text-xl font-bold text-[#1A2B4C] mb-3">Tes simulations</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {sims.map((s) => (
@@ -114,7 +147,7 @@ export default function Home() {
         className="w-full text-left rounded-2xl bg-[#E74C3C]/10 border border-[#E74C3C]/30 p-6 flex gap-4 hover:bg-[#E74C3C]/15 transition-colors">
         <ShieldAlert className="text-[#E74C3C] shrink-0" size={28}/>
         <div>
-          <div className="font-display font-bold text-[#1A2B4C]">Vérifie un devis d'agent 🚨</div>
+          <div className="font-display font-bold text-[#1A2B4C]">Vérifie un devis d'agent </div>
           <p className="text-sm text-slate-600 mt-1">Un permis d'études Canada coûte <b>150 CAD (~98 500 FCFA)</b>. Si on te demande 3 000 000 FCFA, c'est une arnaque. Colle le montant → vérification instantanée.</p>
         </div>
       </button>

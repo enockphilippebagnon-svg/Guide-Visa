@@ -71,7 +71,7 @@ export default function Forum() {
             </div>
           </Link>
         ))}
-        {topics.length === 0 && <div className="text-center text-slate-400 py-10">Aucun sujet — sois le premier !</div>}
+        {topics.length === 0 && <div className="text-center text-slate-400 py-10">Aucun sujet, sois le premier !</div>}
       </div>
 
       {showNew && (

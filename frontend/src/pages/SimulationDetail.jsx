@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api, formatMontant } from "../lib/api";
 import { useAuth } from "../lib/auth";
-import { ArrowLeft, ExternalLink, Clock, ShieldAlert, CheckCircle2, Circle, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Clock, ShieldAlert, CheckCircle2, Circle, Sparkles, FileCheck2 } from "lucide-react";
+import AuditReport from "../components/AuditReport";
 
 export default function SimulationDetail() {
   const { id } = useParams();
@@ -11,6 +12,7 @@ export default function SimulationDetail() {
   const [sim, setSim] = useState(null);
   const [taux, setTaux] = useState({});
   const [checklist, setChecklist] = useState(null);
+  const [showAudit, setShowAudit] = useState(false);
   const devise = user?.devise_preferee || "XOF";
 
   useEffect(() => {
@@ -114,8 +116,14 @@ export default function SimulationDetail() {
             className="mt-4 w-full bg-[#F9CA24] hover:bg-[#ffd93d] text-[#1A2B4C] font-semibold py-2.5 rounded-xl text-sm">
             Compléter mon dossier
           </button>
+          <button onClick={() => setShowAudit(true)} data-testid="detail-audit-btn"
+            className="mt-2 w-full bg-[#0A3D62] hover:bg-[#0d4a78] text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+            <FileCheck2 size={16}/> Analyser tout mon dossier
+          </button>
         </div>
       )}
+
+      <AuditReport open={showAudit} onClose={() => setShowAudit(false)} simId={id}/>
 
       {/* Steps */}
       <div className="space-y-4">
@@ -128,7 +136,7 @@ export default function SimulationDetail() {
               <div className="flex-1">
                 <h3 className="font-display font-bold text-lg text-[#1A2B4C]">{e.titre}</h3>
                 <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">{e.description}</p>
-                <p className="mt-2 text-sm text-slate-500 italic">💡 {e.explication}</p>
+                <p className="mt-2 text-sm text-slate-500 italic"> {e.explication}</p>
 
                 <div className="mt-4 flex flex-wrap gap-2 items-center">
                   {e.cout > 0 ? (

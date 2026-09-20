@@ -30,7 +30,7 @@ export const DEVISE_SYMBOLES = {
 };
 
 export function formatMontant(montant, devise) {
-  if (montant == null) return "—";
+  if (montant == null) return ", ";
   const sym = DEVISE_SYMBOLES[devise] || devise;
   const isFCFA = devise === "XOF" || devise === "XAF";
   const val = isFCFA ? Math.round(montant).toLocaleString("fr-FR") : montant.toLocaleString("fr-FR", { maximumFractionDigits: 2 });

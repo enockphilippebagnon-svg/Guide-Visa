@@ -109,6 +109,7 @@ class DocumentCreate(BaseModel):
     categorie: str
     contenu_base64: str
     mime_type: str
+    date_expiration: Optional[str] = None
 
 class TopicCreate(BaseModel):
     categorie_slug: str
@@ -316,11 +317,37 @@ async def create_document(data: DocumentCreate, user: dict = Depends(get_current
         "id": str(uuid.uuid4()), "user_id": user["id"],
         "nom": data.nom, "categorie": data.categorie,
         "mime_type": data.mime_type, "contenu_base64": data.contenu_base64,
-        "taille": len(data.contenu_base64), "date_upload": now().isoformat(),
+        "taille": len(data.contenu_base64),
+        "date_expiration": data.date_expiration,
+        "date_upload": now().isoformat(),
     }
     await db.documents.insert_one(doc)
     doc.pop("_id", None); doc.pop("contenu_base64", None)
     return doc
+
+@api.get("/documents/rappels")
+async def rappels_expiration(jours: int = 90, user: dict = Depends(get_current_user)):
+    """Documents qui expirent dans les X prochains jours (ou deja expires)."""
+    docs = await db.documents.find(
+        {"user_id": user["id"], "date_expiration": {"$ne": None}},
+        {"_id": 0, "contenu_base64": 0}
+    ).to_list(500)
+    rappels = []
+    for d in docs:
+        de = d.get("date_expiration")
+        if not de:
+            continue
+        try:
+            dt = datetime.fromisoformat(de.replace("Z", "+00:00")) if "T" in de else datetime.fromisoformat(de + "T00:00:00+00:00")
+        except Exception:
+            continue
+        jr = (dt - now()).days
+        if jr <= jours:
+            d["jours_restants"] = jr
+            d["urgence"] = "expire" if jr < 0 else ("critique" if jr <= 30 else "attention")
+            rappels.append(d)
+    rappels.sort(key=lambda x: x["jours_restants"])
+    return rappels
 
 @api.delete("/documents/{doc_id}")
 async def delete_document(doc_id: str, user: dict = Depends(get_current_user)):
@@ -504,7 +531,7 @@ async def _analyser_document_ia(doc: dict, contexte: dict) -> dict:
     except jsonlib.JSONDecodeError:
         return {"status": "ok", "type_detecte": "Document", "est_conforme": None,
                 "score_qualite": 50, "probleme": [], "manque": [],
-                "recommandations": ["Analyse IA partielle — réessaye avec une image plus nette."],
+                "recommandations": ["Analyse IA partielle, réessaye avec une image plus nette."],
                 "verdict_court": txt[:300] if 'txt' in dir() else "Réponse IA non structurée"}
     except Exception as e:
         logger.error(f"IA doc analyse: {e}")
@@ -561,6 +588,75 @@ async def verifier_dossier(sim_id: str, user: dict = Depends(get_current_user)):
     }
 
 # --- Anti-arnaque comparator ---
+@api.post("/simulations/{sim_id}/auditer-tout")
+async def auditer_dossier_complet(sim_id: str, user: dict = Depends(get_current_user)):
+    """Audite tous les documents image d'un dossier via IA et produit un rapport agrege."""
+    sim = await db.simulations.find_one({"id": sim_id, "user_id": user["id"]})
+    if not sim:
+        raise HTTPException(404, "Simulation introuvable")
+    requis = DOCUMENTS_REQUIS.get(sim["pays_destination"], {}).get(sim["motif"], [])
+    procedure_titre = SIMULATIONS.get(sim["pays_destination"], {}).get("motifs", {}).get(sim["motif"], {}).get("titre", "Immigration")
+    all_docs = await db.documents.find({"user_id": user["id"]}).to_list(500)
+    rapport = {
+        "sim_id": sim_id, "procedure": procedure_titre,
+        "pays": sim["pays_destination"], "motif": sim["motif"],
+        "date_audit": now().isoformat(),
+        "utilisateur": (user.get("nom", "") + " " + (user.get("prenom") or "")).strip(),
+        "total_requis": len(requis), "docs_uploaded": len(all_docs),
+        "docs_analyses": [], "score_global": 0,
+        "points_forts": [], "points_faibles": [], "docs_manquants": [],
+    }
+    scores = []
+    for r in requis:
+        match = None
+        for d in all_docs:
+            nom_l = d.get("nom", "").lower()
+            if d.get("categorie") == r["categorie"] and any(mc in nom_l for mc in r["mots_cles"]):
+                match = d
+                break
+        if not match:
+            rapport["docs_manquants"].append(r["nom"])
+            continue
+        if not match.get("mime_type", "").startswith("image/"):
+            rapport["docs_analyses"].append({
+                "requis": r["nom"], "nom_fichier": match["nom"],
+                "categorie": r["categorie"], "status": "non_analysable",
+                "message": "Format non image (PDF). Verifie manuellement.",
+            })
+            scores.append(65)
+            continue
+        analyse = await _analyser_document_ia(match, {"procedure": procedure_titre})
+        entry = {
+            "requis": r["nom"], "nom_fichier": match["nom"],
+            "categorie": r["categorie"], "status": analyse.get("status"),
+            "type_detecte": analyse.get("type_detecte"),
+            "est_conforme": analyse.get("est_conforme"),
+            "score_qualite": analyse.get("score_qualite"),
+            "verdict": analyse.get("verdict_court"),
+            "probleme": analyse.get("probleme", []),
+            "recommandations": analyse.get("recommandations", []),
+        }
+        rapport["docs_analyses"].append(entry)
+        if isinstance(analyse.get("score_qualite"), (int, float)):
+            scores.append(analyse["score_qualite"])
+            if analyse.get("est_conforme") is True and analyse["score_qualite"] >= 70:
+                rapport["points_forts"].append(f"{r['nom']} : conforme ({analyse['score_qualite']}/100)")
+            elif analyse.get("est_conforme") is False:
+                rapport["points_faibles"].append(f"{r['nom']} : a corriger")
+    if scores and requis:
+        rapport["score_global"] = int((sum(scores) / len(scores)) * (len(scores) / len(requis)))
+    if rapport["score_global"] >= 75:
+        rapport["verdict_global"] = "Dossier solide, pret a etre depose."
+        rapport["couleur"] = "#2ECC71"
+    elif rapport["score_global"] >= 50:
+        rapport["verdict_global"] = "Dossier correct, des corrections sont necessaires."
+        rapport["couleur"] = "#F9CA24"
+    else:
+        rapport["verdict_global"] = "Dossier incomplet. Priorise les documents manquants."
+        rapport["couleur"] = "#E74C3C"
+    await db.audits.insert_one({**rapport, "id": str(uuid.uuid4())})
+    return rapport
+
 @api.post("/anti-arnaque/comparer")
 async def comparer_arnaque(payload: dict):
     pays = payload.get("pays", "").upper()
@@ -583,18 +679,18 @@ async def comparer_arnaque(payload: dict):
     # Verdict
     if ratio <= 1.5:
         verdict = "SAFE"
-        label = "Prix raisonnable ✅"
+        label = "Prix raisonnable "
         message = "Le montant demandé est proche des frais officiels. Vérifie tout de même la source."
         couleur = "#2ECC71"
     elif ratio <= 3:
         verdict = "SUSPECT"
-        label = "Attention — prix suspect ⚠️"
+        label = "Attention, prix suspect "
         message = "Le montant est plus élevé que les frais officiels. Demande le détail exact des frais."
         couleur = "#F9CA24"
     else:
         verdict = "ARNAQUE"
-        label = "Arnaque probable 🚨"
-        message = f"Le montant est {ratio:.1f}× plus élevé que les frais officiels. Ne paye pas — vérifie sur les sites officiels."
+        label = "Arnaque probable "
+        message = f"Le montant est {ratio:.1f}× plus élevé que les frais officiels. Ne paye pas, vérifie sur les sites officiels."
         couleur = "#E74C3C"
     # Convert to user's local currency
     devise_user = payload.get("devise_utilisateur", devise_demandee)

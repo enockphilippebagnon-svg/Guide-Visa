@@ -73,7 +73,7 @@ export default function Register() {
                   {pays.map((p) => <option key={p.code} value={p.code}>{p.drapeau} {p.nom}</option>)}
                 </select>
               </div>
-              <div className="mt-1.5 text-xs text-[#2ECC71] font-semibold">💱 Devise détectée : {devise}</div>
+              <div className="mt-1.5 text-xs text-[#2ECC71] font-semibold"> Devise détectée : {devise}</div>
             </div>
 
             {inp("telephone", "tel", <Phone size={18}/>, "Téléphone", false)}
