@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, formatMontant } from "../lib/api";
 import { useAuth } from "../lib/auth";
-import { ArrowRight, GraduationCap, Briefcase, Users, ShieldAlert } from "lucide-react";
+import { ArrowRight, GraduationCap, Briefcase, Users, ShieldAlert, ExternalLink } from "lucide-react";
 
 const MOTIF_ICONS = { etudes: GraduationCap, travail: Briefcase, famille: Users };
 const MOTIF_LABELS = { etudes: "Études", travail: "Travail", famille: "Famille" };
@@ -96,14 +96,28 @@ export default function Home() {
         </div>
       )}
 
+      {/* Liens utiles */}
+      <button onClick={() => window.location.href = "/app/liens"} data-testid="home-liens-cta"
+        className="w-full text-left bg-white rounded-2xl p-5 border border-slate-100 gv-shadow hover:-translate-y-0.5 transition-transform flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-[#F9CA24]/20 flex items-center justify-center">
+          <ExternalLink className="text-[#F9CA24]" size={22}/>
+        </div>
+        <div className="flex-1">
+          <div className="font-display font-bold text-[#1A2B4C]">Bibliothèque de liens officiels</div>
+          <div className="text-xs text-slate-500 mt-0.5">Ambassades, tests de langue, bourses, biométrie…</div>
+        </div>
+        <ArrowRight className="text-slate-400" size={18}/>
+      </button>
+
       {/* Anti-scam */}
-      <div className="rounded-2xl bg-[#E74C3C]/10 border border-[#E74C3C]/30 p-6 flex gap-4">
+      <button onClick={() => window.location.href = "/app/anti-arnaque"} data-testid="home-antiscam-cta"
+        className="w-full text-left rounded-2xl bg-[#E74C3C]/10 border border-[#E74C3C]/30 p-6 flex gap-4 hover:bg-[#E74C3C]/15 transition-colors">
         <ShieldAlert className="text-[#E74C3C] shrink-0" size={28}/>
         <div>
-          <div className="font-display font-bold text-[#1A2B4C]">Attention aux arnaques 🚨</div>
-          <p className="text-sm text-slate-600 mt-1">Un permis d'études Canada coûte <b>150 CAD (~98 500 FCFA)</b>. Si on te demande 3 000 000 FCFA "pour accélérer", c'est une arnaque.</p>
+          <div className="font-display font-bold text-[#1A2B4C]">Vérifie un devis d'agent 🚨</div>
+          <p className="text-sm text-slate-600 mt-1">Un permis d'études Canada coûte <b>150 CAD (~98 500 FCFA)</b>. Si on te demande 3 000 000 FCFA, c'est une arnaque. Colle le montant → vérification instantanée.</p>
         </div>
-      </div>
+      </button>
     </div>
   );
 }

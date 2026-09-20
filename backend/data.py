@@ -167,6 +167,77 @@ FORUM_CATEGORIES = [
     {"slug": "general", "nom": "💬 Discussions générales", "description": "Tout autre sujet", "ordre": 10},
 ]
 
+# Documents attendus par procédure — utilisé par le vérificateur IA
+DOCUMENTS_REQUIS = {
+    "CA": {
+        "etudes": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Lettre d'admission (DLI)", "categorie": "Études", "mots_cles": ["admission", "acceptance", "letter", "dli"]},
+            {"nom": "Preuve de fonds bancaires", "categorie": "Finances", "mots_cles": ["banque", "relevé", "statement", "bank"]},
+            {"nom": "Résultat test de langue (IELTS/TEF)", "categorie": "Études", "mots_cles": ["ielts", "tef", "tcf", "language"]},
+            {"nom": "Certificat médical", "categorie": "Santé", "mots_cles": ["médical", "medical", "santé"]},
+            {"nom": "CAQ (si Québec)", "categorie": "Études", "mots_cles": ["caq", "québec", "quebec"]},
+            {"nom": "Photo d'identité conforme", "categorie": "Identité", "mots_cles": ["photo"]},
+        ],
+        "travail": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Offre d'emploi (LMIA/EIMT)", "categorie": "Autres", "mots_cles": ["emploi", "offer", "lmia", "eimt"]},
+            {"nom": "CV et diplômes", "categorie": "Études", "mots_cles": ["cv", "diplôme", "diploma"]},
+            {"nom": "Certificat médical", "categorie": "Santé", "mots_cles": ["médical", "medical"]},
+        ],
+        "famille": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Acte de mariage / naissance", "categorie": "Identité", "mots_cles": ["mariage", "naissance", "marriage", "birth"]},
+            {"nom": "Attestation du parrain", "categorie": "Autres", "mots_cles": ["parrain", "sponsor"]},
+            {"nom": "Certificat médical", "categorie": "Santé", "mots_cles": ["médical", "medical"]},
+        ],
+    },
+    "FR": {
+        "etudes": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Acceptation Études en France", "categorie": "Études", "mots_cles": ["campus", "études", "acceptation"]},
+            {"nom": "Justificatifs financiers (615 EUR/mois)", "categorie": "Finances", "mots_cles": ["banque", "relevé", "statement"]},
+            {"nom": "Test de langue (TCF/DELF)", "categorie": "Études", "mots_cles": ["tcf", "delf", "dalf"]},
+            {"nom": "Justificatif de logement", "categorie": "Autres", "mots_cles": ["logement", "housing", "loyer"]},
+            {"nom": "Assurance maladie", "categorie": "Santé", "mots_cles": ["assurance", "santé", "insurance"]},
+            {"nom": "Photo d'identité", "categorie": "Identité", "mots_cles": ["photo"]},
+        ],
+        "travail": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Contrat de travail", "categorie": "Autres", "mots_cles": ["contrat", "contract", "travail"]},
+            {"nom": "Autorisation de travail", "categorie": "Autres", "mots_cles": ["autorisation", "travail"]},
+            {"nom": "CV et diplômes", "categorie": "Études", "mots_cles": ["cv", "diplôme"]},
+        ],
+        "famille": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Acte de mariage", "categorie": "Identité", "mots_cles": ["mariage", "marriage"]},
+            {"nom": "Test A1 français (DELF)", "categorie": "Études", "mots_cles": ["a1", "delf"]},
+            {"nom": "Justificatifs du conjoint", "categorie": "Autres", "mots_cles": ["conjoint", "spouse"]},
+        ],
+    },
+    "DE": {
+        "etudes": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Admission Uni-Assist", "categorie": "Études", "mots_cles": ["uni-assist", "zulassung", "admission"]},
+            {"nom": "Compte bloqué (11 904 EUR)", "categorie": "Finances", "mots_cles": ["sperrkonto", "bloqué", "expatrio"]},
+            {"nom": "Test allemand (TestDaF/Goethe)", "categorie": "Études", "mots_cles": ["testdaf", "goethe", "deutsch"]},
+            {"nom": "Assurance santé (TK/AOK)", "categorie": "Santé", "mots_cles": ["krankenversicherung", "tk", "aok", "insurance"]},
+            {"nom": "Diplômes traduits en allemand", "categorie": "Études", "mots_cles": ["diplôme", "übersetzung", "traduction"]},
+            {"nom": "Photo d'identité biométrique", "categorie": "Identité", "mots_cles": ["photo", "biometric"]},
+        ],
+        "travail": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Contrat de travail (salaire > 45 300 EUR)", "categorie": "Autres", "mots_cles": ["contrat", "contract", "arbeitsvertrag"]},
+            {"nom": "Reconnaissance diplôme (ANABIN)", "categorie": "Études", "mots_cles": ["anabin", "zab", "diplôme"]},
+        ],
+        "famille": [
+            {"nom": "Passeport valide", "categorie": "Identité", "mots_cles": ["passeport", "passport"]},
+            {"nom": "Acte de mariage traduit", "categorie": "Identité", "mots_cles": ["mariage", "marriage", "übersetzung"]},
+            {"nom": "Test A1 allemand", "categorie": "Études", "mots_cles": ["a1", "goethe"]},
+        ],
+    },
+}
+
 LIENS_INITIAUX = [
     {"categorie": "Sites officiels", "titre": "IRCC — Immigration Canada", "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete.html", "description": "Site officiel du gouvernement canadien pour toutes les demandes d'immigration.", "pays": "CA", "cout": "Gratuit"},
     {"categorie": "Sites officiels", "titre": "France-Visas", "url": "https://france-visas.gouv.fr/", "description": "Portail officiel des visas français.", "pays": "FR", "cout": "Gratuit"},

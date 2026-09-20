@@ -1,0 +1,25 @@
+{
+  "summary": "First-finish smoke test of Guide Visa PWA. Backend endpoints (login, register, /me, /pays, /liens, /forum/categories, /admin/stats) all return 200 with valid payloads. Frontend flow verified end-to-end: landing renders (hero + 'Simuler ma procédure' + 'J'ai déjà un compte'), admin login redirects to /app, home shows 3 country cards (Canada/France/Allemagne) with welcome banner, clicking Canada reveals motifs, clicking a motif navigates to /app/simuler/CA/etudes with the profil form (age/diplome/langue/budget), admin button opens /admin dashboard with 4 KPI cards (2 users, 0 sims, 0 topics, 12 liens), forum page loads, logout redirects to /login. Registration of kofi@test.com (pays_origine=BJ) via API returned devise_preferee=XOF as expected.",
+  "tested_scope": ["frontend", "backend", "auth", "integration"],
+  "passed": [
+    "GET / returns 200 and landing renders with CTAs",
+    "POST /api/auth/login (admin) returns user + access_token",
+    "POST /api/auth/register (kofi@test.com/BJ) returns devise_preferee=XOF",
+    "GET /api/auth/me with Bearer returns admin profile",
+    "GET /api/admin/stats returns 4 KPIs (users, sims, topics, liens=12)",
+    "GET /api/pays returns list with BJ/CI/etc.",
+    "GET /api/liens returns 12 seeded links",
+    "GET /api/forum/categories returns categories with slugs",
+    "Login UI: form submit -> redirect /app, welcome banner shows",
+    "Country card CA -> motif list -> /app/simuler/CA/etudes with profile form",
+    "Admin header button navigates to /admin dashboard (4 KPI cards visible)",
+    "Forum page loads",
+    "Logout button clears session and redirects to /login"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "notes": "Console 401 errors on /login page are benign (pre-login /api/auth/me probe). Simulator submission with score animation, document upload, forum topic creation, liens external link click, currency conversion display in FCFA, and admin CRUD (suspend user, add lien, delete topic) were not exercised in this latency-sensitive pass — recommend deeper coverage in full testing agent.",
+  "full_testing_deferred": true
+}

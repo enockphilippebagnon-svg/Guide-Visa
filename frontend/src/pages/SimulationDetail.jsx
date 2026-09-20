@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api, formatMontant } from "../lib/api";
 import { useAuth } from "../lib/auth";
-import { ArrowLeft, ExternalLink, Clock, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Clock, ShieldAlert, CheckCircle2, Circle, Sparkles } from "lucide-react";
 
 export default function SimulationDetail() {
   const { id } = useParams();
@@ -10,11 +10,13 @@ export default function SimulationDetail() {
   const { user } = useAuth();
   const [sim, setSim] = useState(null);
   const [taux, setTaux] = useState({});
+  const [checklist, setChecklist] = useState(null);
   const devise = user?.devise_preferee || "XOF";
 
   useEffect(() => {
     api.get(`/simulations/${id}`).then(({ data }) => setSim(data));
     api.get(`/devises/taux?base=EUR`).then(({ data }) => setTaux(data.rates || {}));
+    api.get(`/simulations/${id}/verifier-dossier`).then(({ data }) => setChecklist(data)).catch(() => {});
   }, [id]);
 
   if (!sim) return <div className="text-slate-400">Chargement…</div>;
@@ -65,11 +67,55 @@ export default function SimulationDetail() {
       {/* Anti-scam */}
       <div className="rounded-2xl bg-[#E74C3C]/10 border border-[#E74C3C]/30 p-5 flex gap-3">
         <ShieldAlert className="text-[#E74C3C] shrink-0 mt-0.5" size={22}/>
-        <div className="text-sm">
+        <div className="text-sm flex-1">
           <b className="text-[#1A2B4C]">Frais officiels total : {d.cout_total} {officialCurrency}</b>
           <p className="text-slate-600 mt-1">Si un "agent" te demande beaucoup plus pour "accélérer", c'est une arnaque. Utilise uniquement les liens officiels ci-dessous.</p>
+          <button onClick={() => nav("/app/anti-arnaque")} data-testid="detail-antiscam-cta"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#E74C3C] hover:underline">
+            Vérifier un devis reçu →
+          </button>
         </div>
       </div>
+
+      {/* Dossier checklist */}
+      {checklist && (
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 gv-shadow" data-testid="detail-checklist">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-widest text-[#F9CA24]">
+                <Sparkles size={12} className="inline mr-1"/> Assistant IA
+              </div>
+              <div className="font-display font-bold text-lg text-[#1A2B4C]">Vérification du dossier</div>
+            </div>
+            <div className="text-right">
+              <div className="font-display text-2xl font-bold text-[#0A3D62]">{checklist.presents}/{checklist.total}</div>
+              <div className="text-[10px] text-slate-500 uppercase font-bold">documents</div>
+            </div>
+          </div>
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
+            <div className="h-full bg-[#2ECC71] transition-all" style={{ width: `${checklist.progression_pct}%` }}/>
+          </div>
+          <ul className="space-y-2">
+            {checklist.checklist.map((c, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm" data-testid={`checklist-${i}`}>
+                {c.present ? (
+                  <CheckCircle2 className="text-[#2ECC71] shrink-0 mt-0.5" size={18}/>
+                ) : (
+                  <Circle className="text-slate-300 shrink-0 mt-0.5" size={18}/>
+                )}
+                <div className="flex-1">
+                  <div className={c.present ? "text-slate-500 line-through" : "text-[#1A2B4C] font-semibold"}>{c.requis}</div>
+                  <div className="text-[11px] text-slate-400">Catégorie : {c.categorie}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <button onClick={() => nav("/app/documents")} data-testid="detail-docs-cta"
+            className="mt-4 w-full bg-[#F9CA24] hover:bg-[#ffd93d] text-[#1A2B4C] font-semibold py-2.5 rounded-xl text-sm">
+            Compléter mon dossier
+          </button>
+        </div>
+      )}
 
       {/* Steps */}
       <div className="space-y-4">

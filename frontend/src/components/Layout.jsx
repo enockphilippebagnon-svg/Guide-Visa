@@ -1,23 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { Home, FolderClosed, MessagesSquare, Link2, User, LogOut, Shield } from "lucide-react";
+import { Home, FolderClosed, MessagesSquare, ShieldAlert, User, LogOut, Shield, WifiOff } from "lucide-react";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const nav = useNavigate();
   const isAdmin = user && user.role === "admin";
+  const [online, setOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
+  }, []);
 
   const tabs = [
     { to: "/app", icon: Home, label: "Accueil", end: true },
     { to: "/app/documents", icon: FolderClosed, label: "Docs" },
+    { to: "/app/anti-arnaque", icon: ShieldAlert, label: "Arnaque" },
     { to: "/app/forum", icon: MessagesSquare, label: "Forum" },
-    { to: "/app/liens", icon: Link2, label: "Liens" },
     { to: "/app/profil", icon: User, label: "Profil" },
   ];
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] pb-24 lg:pb-6">
+      {!online && (
+        <div className="bg-[#F9CA24] text-[#1A2B4C] text-center text-xs font-bold py-2 flex items-center justify-center gap-2" data-testid="offline-banner">
+          <WifiOff size={14}/> Mode hors ligne — tes données sont sauvegardées localement
+        </div>
+      )}
       {/* Top nav */}
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/90 border-b border-slate-200/70">
         <div className="max-w-6xl mx-auto px-5 py-3.5 flex items-center justify-between">

@@ -16,6 +16,7 @@ import Forum from "./pages/Forum";
 import ForumTopic from "./pages/ForumTopic";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import AntiScam from "./pages/AntiScam";
 
 function Protected({ children, admin }) {
   const { user, loading } = useAuth();
@@ -42,6 +43,7 @@ function App() {
           <Route path="/app/forum" element={<Protected><Layout><Forum /></Layout></Protected>} />
           <Route path="/app/forum/:id" element={<Protected><Layout><ForumTopic /></Layout></Protected>} />
           <Route path="/app/profil" element={<Protected><Layout><Profile /></Layout></Protected>} />
+          <Route path="/app/anti-arnaque" element={<Protected><Layout><AntiScam /></Layout></Protected>} />
           <Route path="/admin" element={<Protected admin><Layout><Admin /></Layout></Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

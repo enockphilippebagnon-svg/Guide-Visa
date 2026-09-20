@@ -1,0 +1,15 @@
+{
+  "short_name": "Guide Visa",
+  "name": "Guide Visa — Digitalk Afrique",
+  "description": "Simulateur d'immigration pour l'Afrique — Canada, France, Allemagne.",
+  "icons": [
+    { "src": "/logo192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/logo512.png", "type": "image/png", "sizes": "512x512" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0A3D62",
+  "background_color": "#F5F7FA",
+  "orientation": "portrait-primary",
+  "lang": "fr"
+}

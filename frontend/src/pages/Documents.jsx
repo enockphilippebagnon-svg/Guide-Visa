@@ -1,17 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../lib/api";
-import { Upload, Trash2, FileText, FolderClosed } from "lucide-react";
+import { Upload, Trash2, FileText, FolderClosed, Sparkles } from "lucide-react";
+import AIAnalyzer from "../components/AIAnalyzer";
 
 const CATEGORIES = ["Identité", "Études", "Finances", "Santé", "Autres"];
 
 export default function Documents() {
   const [docs, setDocs] = useState([]);
   const [cat, setCat] = useState("Identité");
+  const [analyzing, setAnalyzing] = useState(null);
+  const [sims, setSims] = useState([]);
   const inputRef = useRef(null);
 
   const load = () => api.get("/documents").then(({ data }) => setDocs(data));
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    api.get("/simulations/mes").then(({ data }) => setSims(data)).catch(() => {});
+  }, []);
 
   const upload = async (file) => {
     if (!file) return;
@@ -89,6 +95,13 @@ export default function Documents() {
                   <div key={d.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#F5F7FA]" data-testid={`doc-item-${d.id}`}>
                     <FileText className="text-slate-400" size={18}/>
                     <div className="text-sm text-[#1A2B4C] flex-1 truncate">{d.nom}</div>
+                    {d.mime_type?.startsWith("image/") && (
+                      <button onClick={() => setAnalyzing(d.id)} data-testid={`doc-ai-${d.id}`}
+                        title="Analyser avec l'IA"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-br from-[#0A3D62] to-[#1a5a8f] text-white text-xs font-semibold hover:opacity-90">
+                        <Sparkles size={12} className="text-[#F9CA24]"/> IA
+                      </button>
+                    )}
                     <button onClick={() => del(d.id)} className="text-slate-400 hover:text-[#E74C3C] p-1" data-testid={`doc-del-${d.id}`}>
                       <Trash2 size={16}/>
                     </button>
@@ -99,6 +112,8 @@ export default function Documents() {
           </div>
         ))}
       </div>
+
+      <AIAnalyzer open={!!analyzing} onClose={() => setAnalyzing(null)} docId={analyzing} simulationId={sims[0]?.id}/>
     </div>
   );
 }

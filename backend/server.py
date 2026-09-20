@@ -15,7 +15,10 @@ from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Respons
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr, Field
-from data import PAYS, PAYS_VERS_DEVISE, TAUX_FALLBACK, SIMULATIONS, FORUM_CATEGORIES, LIENS_INITIAUX
+from data import PAYS, PAYS_VERS_DEVISE, TAUX_FALLBACK, SIMULATIONS, FORUM_CATEGORIES, LIENS_INITIAUX, DOCUMENTS_REQUIS
+import base64
+import json as jsonlib
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 
 # --- Setup ---
 mongo_url = os.environ['MONGO_URL']
@@ -454,6 +457,160 @@ async def admin_topics(admin: dict = Depends(require_admin)):
 @api.get("/admin/liens")
 async def admin_liens(admin: dict = Depends(require_admin)):
     return await db.liens.find({}, {"_id": 0}).to_list(500)
+
+# --- AI Document Analyzer ---
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+
+async def _analyser_document_ia(doc: dict, contexte: dict) -> dict:
+    """Analyse une image de document via Gemini vision. Retourne un verdict JSON."""
+    if not EMERGENT_LLM_KEY:
+        return {"status": "erreur", "message": "IA non configurée"}
+    mime = doc.get("mime_type", "")
+    if not mime.startswith("image/"):
+        return {"status": "non_supporte",
+                "message": "L'analyse IA fonctionne pour l'instant sur les images (JPG, PNG). Pour un PDF, convertis-le en image."}
+    system = (
+        "Tu es un assistant expert en immigration africaine, spécialisé dans la vérification de documents pour Guide Visa "
+        "(édité par Digitalk Afrique). Tu analyses une image de document et vérifies sa conformité pour une procédure d'immigration. "
+        "Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sans markdown, avec ces clés exactement : "
+        '{"type_detecte": string, "est_conforme": true|false, "score_qualite": 0-100, '
+        '"probleme": [string], "manque": [string], "recommandations": [string], "verdict_court": string}. '
+        "Sois bienveillant et pédagogue en français simple."
+    )
+    prompt = (
+        f"Document uploadé par l'utilisateur dans la catégorie **{doc.get('categorie')}** "
+        f"pour une procédure **{contexte.get('procedure', 'immigration générale')}**. "
+        f"Nom du fichier : `{doc.get('nom')}`.\n\n"
+        "Analyse cette image et dis :\n"
+        "1. Quel type de document est-ce ? (passeport, diplôme, relevé bancaire, photo d'identité, test de langue, contrat, autre)\n"
+        "2. Est-il conforme et lisible ? (qualité, netteté, signature, date, cachet)\n"
+        "3. Quels problèmes vois-tu ? (flou, coupé, expiré, photocopie de mauvaise qualité, informations manquantes)\n"
+        "4. Que manque-t-il pour la procédure sélectionnée ?\n"
+        "5. Recommandations concrètes pour améliorer.\n\n"
+        "Réponds STRICTEMENT en JSON."
+    )
+    try:
+        chat = (LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"doc-{doc.get('id')}", system_message=system)
+                .with_model("gemini", "gemini-2.5-flash"))
+        img = ImageContent(image_base64=doc["contenu_base64"])
+        response = await chat.send_message(UserMessage(text=prompt, file_contents=[img]))
+        txt = response.strip() if isinstance(response, str) else str(response)
+        # Extract JSON if wrapped in code fences
+        if "```" in txt:
+            txt = txt.split("```")[1].replace("json", "", 1).strip()
+        result = jsonlib.loads(txt)
+        result["status"] = "ok"
+        return result
+    except jsonlib.JSONDecodeError:
+        return {"status": "ok", "type_detecte": "Document", "est_conforme": None,
+                "score_qualite": 50, "probleme": [], "manque": [],
+                "recommandations": ["Analyse IA partielle — réessaye avec une image plus nette."],
+                "verdict_court": txt[:300] if 'txt' in dir() else "Réponse IA non structurée"}
+    except Exception as e:
+        logger.error(f"IA doc analyse: {e}")
+        return {"status": "erreur", "message": f"L'IA n'a pas pu analyser ce document ({str(e)[:100]})"}
+
+@api.post("/documents/{doc_id}/analyser")
+async def analyser_document(doc_id: str, payload: dict = None, user: dict = Depends(get_current_user)):
+    doc = await db.documents.find_one({"id": doc_id, "user_id": user["id"]})
+    if not doc:
+        raise HTTPException(404, "Document introuvable")
+    contexte = payload or {}
+    if contexte.get("simulation_id"):
+        sim = await db.simulations.find_one({"id": contexte["simulation_id"], "user_id": user["id"]})
+        if sim:
+            p = SIMULATIONS.get(sim["pays_destination"], {})
+            m = p.get("motifs", {}).get(sim["motif"], {})
+            contexte["procedure"] = f"{m.get('titre', 'immigration')} ({p.get('pays', '')})"
+    result = await _analyser_document_ia(doc, contexte)
+    await db.documents.update_one({"id": doc_id},
+        {"$set": {"analyse_ia": result, "date_analyse": now().isoformat()}})
+    return result
+
+@api.get("/simulations/{sim_id}/verifier-dossier")
+async def verifier_dossier(sim_id: str, user: dict = Depends(get_current_user)):
+    sim = await db.simulations.find_one({"id": sim_id, "user_id": user["id"]})
+    if not sim:
+        raise HTTPException(404, "Simulation introuvable")
+    requis = DOCUMENTS_REQUIS.get(sim["pays_destination"], {}).get(sim["motif"], [])
+    docs = await db.documents.find({"user_id": user["id"]}, {"_id": 0, "contenu_base64": 0}).to_list(500)
+    checklist = []
+    for r in requis:
+        match = None
+        for d in docs:
+            nom_l = d.get("nom", "").lower()
+            if d.get("categorie") == r["categorie"] and any(mc in nom_l for mc in r["mots_cles"]):
+                match = d
+                break
+        checklist.append({
+            "requis": r["nom"],
+            "categorie": r["categorie"],
+            "present": bool(match),
+            "document": match,
+        })
+    total = len(checklist)
+    presents = sum(1 for c in checklist if c["present"])
+    return {
+        "sim_id": sim_id,
+        "procedure": SIMULATIONS.get(sim["pays_destination"], {}).get("motifs", {}).get(sim["motif"], {}).get("titre"),
+        "total": total,
+        "presents": presents,
+        "manquants": total - presents,
+        "progression_pct": int((presents / total) * 100) if total else 0,
+        "checklist": checklist,
+    }
+
+# --- Anti-arnaque comparator ---
+@api.post("/anti-arnaque/comparer")
+async def comparer_arnaque(payload: dict):
+    pays = payload.get("pays", "").upper()
+    motif = payload.get("motif", "")
+    montant_demande = float(payload.get("montant_demande", 0))
+    devise_demandee = payload.get("devise_demandee", "EUR")
+    p = SIMULATIONS.get(pays)
+    if not p or motif not in p.get("motifs", {}):
+        raise HTTPException(400, "Combinaison pays/motif inconnue")
+    m = p["motifs"][motif]
+    cout_officiel_devise = m["cout_total"]
+    devise_officielle = p["devise_officielle"]
+    # Convert both to EUR for comparison
+    taux_off = TAUX_FALLBACK.get(devise_officielle, 1.0)
+    taux_dem = TAUX_FALLBACK.get(devise_demandee, 1.0)
+    officiel_eur = cout_officiel_devise / taux_off
+    demande_eur = montant_demande / taux_dem
+    ratio = demande_eur / officiel_eur if officiel_eur > 0 else 0
+    ecart_eur = demande_eur - officiel_eur
+    # Verdict
+    if ratio <= 1.5:
+        verdict = "SAFE"
+        label = "Prix raisonnable ✅"
+        message = "Le montant demandé est proche des frais officiels. Vérifie tout de même la source."
+        couleur = "#2ECC71"
+    elif ratio <= 3:
+        verdict = "SUSPECT"
+        label = "Attention — prix suspect ⚠️"
+        message = "Le montant est plus élevé que les frais officiels. Demande le détail exact des frais."
+        couleur = "#F9CA24"
+    else:
+        verdict = "ARNAQUE"
+        label = "Arnaque probable 🚨"
+        message = f"Le montant est {ratio:.1f}× plus élevé que les frais officiels. Ne paye pas — vérifie sur les sites officiels."
+        couleur = "#E74C3C"
+    # Convert to user's local currency
+    devise_user = payload.get("devise_utilisateur", devise_demandee)
+    taux_user = TAUX_FALLBACK.get(devise_user, 1.0)
+    return {
+        "verdict": verdict, "label": label, "message": message, "couleur": couleur,
+        "ratio": round(ratio, 2),
+        "cout_officiel": {"montant": cout_officiel_devise, "devise": devise_officielle,
+                         "en_devise_utilisateur": round(officiel_eur * taux_user, 2),
+                         "devise_utilisateur": devise_user},
+        "montant_demande": {"montant": montant_demande, "devise": devise_demandee,
+                            "en_devise_utilisateur": round(demande_eur * taux_user, 2)},
+        "ecart_eur": round(ecart_eur, 2),
+        "procedure": m.get("titre"),
+        "conseil_final": "Utilise uniquement les liens officiels de ta simulation. Aucun agent ne peut 'accélérer' officiellement.",
+    }
 
 # --- Startup ---
 @app.on_event("startup")
